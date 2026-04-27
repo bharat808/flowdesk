@@ -1,0 +1,1838 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlowDesk — Approval Workflow</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d0f12;
+      --bg2: #13161b;
+      --bg3: #1a1e25;
+      --bg4: #21262f;
+      --border: rgba(255, 255, 255, 0.07);
+      --border2: rgba(255, 255, 255, 0.12);
+      --text: #e8eaf0;
+      --text2: #8c93a0;
+      --text3: #5a6170;
+      --accent: #4f7fff;
+      --accent2: #3567f5;
+      --accent-bg: rgba(79, 127, 255, 0.1);
+      --accent-border: rgba(79, 127, 255, 0.25);
+      --green: #2dd4a0;
+      --green-bg: rgba(45, 212, 160, 0.1);
+      --green-border: rgba(45, 212, 160, 0.2);
+      --red: #f05252;
+      --red-bg: rgba(240, 82, 82, 0.1);
+      --red-border: rgba(240, 82, 82, 0.2);
+      --amber: #f5a623;
+      --amber-bg: rgba(245, 166, 35, 0.1);
+      --amber-border: rgba(245, 166, 35, 0.2);
+      --purple: #a78bfa;
+      --purple-bg: rgba(167, 139, 250, 0.1);
+      --radius: 10px;
+      --radius-lg: 14px;
+      --shadow: 0 4px 24px rgba(0, 0, 0, 0.4)
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    body {
+      font-family: 'Instrument Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg)
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--bg4);
+      border-radius: 3px
+    }
+
+    #splash {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      flex-direction: column;
+      gap: 48px
+    }
+
+    .splash-logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 42px;
+      color: var(--text);
+      letter-spacing: -1px;
+      margin-bottom: 6px;
+      text-align: center
+    }
+
+    .splash-logo span {
+      color: var(--accent)
+    }
+
+    .splash-tagline {
+      font-size: 14px;
+      color: var(--text3);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-align: center
+    }
+
+    #user-verify {
+      display: none
+    }
+
+    .login-box {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 40px 36px;
+      width: 420px;
+      box-shadow: var(--shadow)
+    }
+
+    .login-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      margin-bottom: 6px
+    }
+
+    .login-sub {
+      font-size: 13px;
+      color: var(--text3);
+      margin-bottom: 28px;
+      line-height: 1.6
+    }
+
+    #app {
+      display: none;
+      min-height: 100vh
+    }
+
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 220px;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      z-index: 10
+    }
+
+    .sidebar-brand {
+      padding: 20px 18px;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .sidebar-logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      color: var(--text)
+    }
+
+    .sidebar-logo span {
+      color: var(--accent)
+    }
+
+    .sidebar-role-pill {
+      font-size: 10px;
+      color: var(--text3);
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em
+    }
+
+    .sidebar-user-pill {
+      font-size: 11px;
+      color: var(--accent);
+      margin-top: 3px;
+      font-family: 'DM Mono', monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text2);
+      transition: all .15s;
+      border: 1px solid transparent
+    }
+
+    .nav-item:hover {
+      background: var(--bg3);
+      color: var(--text)
+    }
+
+    .nav-item.active {
+      background: var(--accent-bg);
+      color: var(--accent);
+      border-color: var(--accent-border)
+    }
+
+    .nav-icon {
+      font-size: 15px;
+      width: 20px;
+      text-align: center
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      background: var(--red);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 600;
+      width: 18px;
+      height: 18px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center
+    }
+
+    .sidebar-footer {
+      padding: 14px 12px;
+      border-top: 1px solid var(--border)
+    }
+
+    .switch-role-btn {
+      width: 100%;
+      padding: 8px;
+      background: transparent;
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      color: var(--text2);
+      font-size: 12px;
+      cursor: pointer;
+      font-family: 'Instrument Sans', sans-serif;
+      transition: all .15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px
+    }
+
+    .switch-role-btn:hover {
+      border-color: var(--accent-border);
+      color: var(--accent)
+    }
+
+    .main-area {
+      margin-left: 220px;
+      padding: 28px 32px;
+      min-height: 100vh
+    }
+
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 28px
+    }
+
+    .page-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 28px;
+      color: var(--text);
+      line-height: 1.1
+    }
+
+    .page-sub {
+      font-size: 13px;
+      color: var(--text3);
+      margin-top: 5px
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--border2);
+      background: var(--bg3);
+      color: var(--text);
+      font-family: 'Instrument Sans', sans-serif;
+      transition: all .15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    .btn:hover {
+      background: var(--bg4)
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      border-color: transparent;
+      color: #fff
+    }
+
+    .btn-primary:hover {
+      background: var(--accent2)
+    }
+
+    .btn-success {
+      background: var(--green-bg);
+      border-color: var(--green-border);
+      color: var(--green);
+      padding: 6px 12px;
+      font-size: 12px
+    }
+
+    .btn-danger {
+      background: var(--red-bg);
+      border-color: var(--red-border);
+      color: var(--red);
+      padding: 6px 12px;
+      font-size: 12px
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px
+    }
+
+    .btn:disabled {
+      opacity: .45;
+      cursor: not-allowed
+    }
+
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px 22px;
+      margin-bottom: 16px
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text2);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 24px
+    }
+
+    .stat-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      margin-bottom: 8px
+    }
+
+    .stat-value {
+      font-family: 'DM Mono', monospace;
+      font-size: 28px;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 8px;
+      border-radius: 5px
+    }
+
+    .badge-blue {
+      background: var(--accent-bg);
+      color: var(--accent);
+      border: 1px solid var(--accent-border)
+    }
+
+    .badge-green {
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid var(--green-border)
+    }
+
+    .badge-red {
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid var(--red-border)
+    }
+
+    .badge-amber {
+      background: var(--amber-bg);
+      color: var(--amber);
+      border: 1px solid var(--amber-border)
+    }
+
+    .badge-gray {
+      background: var(--bg4);
+      color: var(--text2);
+      border: 1px solid var(--border)
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px
+    }
+
+    label {
+      font-size: 12px;
+      color: var(--text2);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .05em
+    }
+
+    input,
+    select {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 14px;
+      color: var(--text);
+      font-family: 'Instrument Sans', sans-serif;
+      outline: none;
+      transition: border-color .15s;
+      width: 100%
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--accent-border);
+      box-shadow: 0 0 0 3px rgba(79, 127, 255, .08)
+    }
+
+    input::placeholder {
+      color: var(--text3)
+    }
+
+    select option {
+      background: var(--bg3)
+    }
+
+    .entry-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      margin-bottom: 10px;
+      transition: border-color .15s
+    }
+
+    .entry-card:hover {
+      border-color: var(--border2)
+    }
+
+    .entry-card.loading {
+      opacity: .5;
+      pointer-events: none
+    }
+
+    .entry-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap
+    }
+
+    .entry-email {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      font-family: 'DM Mono', monospace
+    }
+
+    .entry-links {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap
+    }
+
+    .entry-link {
+      font-size: 12px;
+      color: var(--accent);
+      text-decoration: none;
+      border: 1px solid var(--accent-border);
+      padding: 3px 10px;
+      border-radius: 5px;
+      background: var(--accent-bg);
+      transition: opacity .15s
+    }
+
+    .entry-link:hover {
+      opacity: .75
+    }
+
+    .entry-link.missing {
+      color: var(--red);
+      border-color: var(--red-border);
+      background: var(--red-bg)
+    }
+
+    .entry-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 20px 0
+    }
+
+    .section-label {
+      font-size: 11px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      margin-bottom: 12px;
+      font-weight: 500
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
+      padding: 12px 18px;
+      font-size: 13px;
+      color: var(--text);
+      z-index: 999;
+      box-shadow: var(--shadow);
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all .25s cubic-bezier(.34, 1.56, .64, 1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      max-width: 320px
+    }
+
+    #toast.show {
+      transform: translateY(0);
+      opacity: 1
+    }
+
+    #toast.success {
+      border-color: var(--green-border)
+    }
+
+    #toast.error {
+      border-color: var(--red-border)
+    }
+
+    .empty {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text3)
+    }
+
+    .empty-icon {
+      font-size: 32px;
+      margin-bottom: 12px
+    }
+
+    .empty-text {
+      font-size: 14px
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      flex-shrink: 0
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0
+    }
+
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      background: var(--bg4);
+      border-radius: 11px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      transition: background .2s
+    }
+
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      left: 3px;
+      top: 3px;
+      width: 14px;
+      height: 14px;
+      border-radius: 7px;
+      background: var(--text3);
+      transition: all .2s
+    }
+
+    .toggle-switch input:checked+.toggle-track {
+      background: var(--accent);
+      border-color: transparent
+    }
+
+    .toggle-switch input:checked+.toggle-track::after {
+      left: 21px;
+      background: #fff
+    }
+
+    .discount-reveal {
+      background: linear-gradient(135deg, var(--green-bg), rgba(45, 212, 160, .05));
+      border: 1px solid var(--green-border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap
+    }
+
+    .discount-code {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: var(--green);
+      font-weight: 500
+    }
+
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, .1);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: inline-block
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    .inline-code-input {
+      display: flex;
+      gap: 8px;
+      align-items: center
+    }
+
+    .inline-code-input input {
+      width: 180px;
+      padding: 6px 10px;
+      font-size: 12px
+    }
+
+    .user-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 16px
+    }
+
+    .user-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px
+    }
+
+    .user-item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1
+    }
+
+    .user-item-name {
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 500
+    }
+
+    .user-item-email {
+      font-size: 11px;
+      color: var(--text3);
+      font-family: 'DM Mono', monospace
+    }
+
+    .user-item-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center
+    }
+
+    .add-user-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 10px;
+      align-items: end;
+      padding: 16px;
+      background: var(--bg3);
+      border: 1px dashed var(--border2);
+      border-radius: 8px;
+      margin-top: 4px
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px
+    }
+
+    .data-table th {
+      text-align: left;
+      padding: 8px 10px;
+      color: var(--text3);
+      font-weight: 500;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .data-table td {
+      padding: 10px 10px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text2);
+      vertical-align: middle
+    }
+
+    .data-table tr:last-child td {
+      border-bottom: none
+    }
+
+    .data-table tr:hover td {
+      background: var(--bg3)
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .fade-in {
+      animation: fadeIn .3s ease forwards
+    }
+
+    .reject-reason-box {
+      margin-top: 12px;
+      padding: 14px 16px;
+      background: var(--red-bg);
+      border: 1px solid var(--red-border);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      animation: fadeIn .2s ease
+    }
+
+    .reject-reason-box label {
+      font-size: 11px;
+      color: var(--red);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      font-weight: 600
+    }
+
+    .reject-reason-box textarea {
+      background: var(--bg3);
+      border: 1px solid var(--red-border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 13px;
+      color: var(--text);
+      font-family: 'Instrument Sans', sans-serif;
+      outline: none;
+      resize: vertical;
+      min-height: 72px;
+      width: 100%;
+      transition: border-color .15s
+    }
+
+    .reject-reason-box textarea:focus {
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px rgba(240, 82, 82, .08)
+    }
+
+    .reject-reason-box textarea::placeholder {
+      color: var(--text3)
+    }
+
+    .reject-reason-actions {
+      display: flex;
+      gap: 8px
+    }
+
+    .naina-rejection-notice {
+      margin-top: 10px;
+      padding: 10px 14px;
+      background: var(--red-bg);
+      border: 1px solid var(--red-border);
+      border-radius: 8px;
+      font-size: 12px;
+      color: var(--red);
+      display: flex;
+      align-items: flex-start;
+      gap: 8px
+    }
+
+    .naina-rejection-notice .notice-icon {
+      flex-shrink: 0;
+      font-size: 14px
+    }
+
+    .naina-rejection-notice .notice-body strong {
+      display: block;
+      margin-bottom: 2px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .05em
+    }
+
+    .page-view {
+      display: none
+    }
+
+    .page-view.active {
+      display: block;
+      animation: fadeIn .25s ease
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- LOGIN -->
+  <div id="splash">
+    <div>
+      <div class="splash-logo">Flow<span>Desk</span></div>
+      <div class="splash-tagline">Approval Workflow System</div>
+    </div>
+    <div class="login-box">
+      <div class="login-title">Sign in</div>
+      <div class="login-sub">Enter your email — we'll detect your access automatically.</div>
+      <div class="form-group" style="margin-bottom:16px">
+        <label>Email address</label>
+        <input id="login-email" type="email" placeholder="your@email.com" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div id="login-msg" style="font-size:12px;min-height:20px;margin-bottom:14px"></div>
+      <button class="btn btn-primary" id="login-btn" onclick="doLogin()"
+        style="width:100%;justify-content:center;padding:11px">
+        Continue →
+      </button>
+    </div>
+  </div>
+
+  <!-- USER VERIFY (unused — kept as hidden placeholder) -->
+  <div id="user-verify" style="display:none"></div>
+
+  <!-- APP -->
+  <div id="app">
+    <div class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">Flow<span>Desk</span></div>
+        <div class="sidebar-role-pill" id="sidebar-role-label">—</div>
+        <div class="sidebar-user-pill" id="sidebar-user-label"></div>
+      </div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div class="sidebar-footer">
+        <button class="switch-role-btn" onclick="switchRole()">↩ Sign out</button>
+      </div>
+    </div>
+
+    <div class="main-area">
+      <div class="page-view" id="view-submit">
+        <div class="page-header">
+          <div>
+            <div class="page-title">New Submission</div>
+            <div class="page-sub">Fill in all fields and submit for approval</div>
+          </div>
+        </div>
+        <div class="card">
+          <div id="submit-msg"></div>
+          <div class="form-grid" style="margin-bottom:16px">
+            <div class="form-group"><label>Email</label><input id="f-email" type="email"
+                placeholder="Enter email for this entry"></div>
+            <div class="form-group"><label>Account ID</label><input id="f-accountid" placeholder="e.g. ACC-123456">
+            </div>
+          </div>
+          <div class="form-grid" style="margin-bottom:16px">
+            <div class="form-group"><label>Discount Code</label><input id="f-discount" placeholder="e.g. DISC-ABC-001">
+            </div>
+          </div>
+          <div class="form-grid" style="margin-bottom:20px">
+            <div class="form-group"><label>X post link</label><input id="f-x" placeholder="https://x.com/post/...">
+            </div>
+            <div class="form-group"><label>InstaPayout link</label><input id="f-insta"
+                placeholder="https://instapayout.com/..."></div>
+          </div>
+          <button class="btn btn-primary" id="submit-btn" onclick="submitEntry()">Submit entry →</button>
+        </div>
+      </div>
+
+      <div class="page-view" id="view-rajas">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Rajas — Approval Queue</div>
+            <div class="page-sub">Review and approve or reject submissions</div>
+          </div>
+          <div class="header-actions"><button class="btn btn-sm" onclick="loadData()">↻ Refresh</button></div>
+        </div>
+        <div id="view-rajas-content"></div>
+      </div>
+
+      <div class="page-view" id="view-naina">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Naina — Approval Queue</div>
+            <div class="page-sub">Entries approved by Ops awaiting your review</div>
+          </div>
+          <div class="header-actions"><button class="btn btn-sm" onclick="loadData()">↻ Refresh</button></div>
+        </div>
+        <div id="view-naina-content"></div>
+      </div>
+
+
+      <div class="page-view" id="view-ops">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Ops Team</div>
+            <div class="page-sub">Process payouts after Naina approves entries</div>
+          </div>
+          <div class="header-actions"><button class="btn btn-sm" onclick="loadData()">↻ Refresh</button></div>
+        </div>
+        <div id="view-ops-content"></div>
+      </div>
+
+      <div class="page-view" id="view-admin">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Admin Panel</div>
+            <div class="page-sub">Manage who can submit and view all data</div>
+          </div>
+          <div class="header-actions"><button class="btn btn-sm" onclick="loadData()">↻ Refresh</button></div>
+        </div>
+        <div id="view-admin-content"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    const API_BASE = window.location.protocol === 'file:' ? 'http://localhost:3000' : window.location.origin;
+    let currentRole = null, currentUserEmail = null, entries = [], currentView = null, toastTimer = null;
+    let allowedSubmitters = [];
+    async function loadSubmitters() {
+      try { const r = await fetch(`${API_BASE}/api/submitters`); const d = await r.json(); allowedSubmitters = d.submitters || []; } catch (e) { }
+    }
+    async function saveSubmitters() { } // no-op, mutations go via API directly
+
+
+    const roleConfigs = {
+      user: { label: 'User', nav: [{ id: 'submit', icon: '📝', label: 'New submission' }] },
+      rajas: { label: 'Rajas', nav: [{ id: 'rajas', icon: '✓', label: 'Approval queue' }] },
+      naina: { label: 'Naina', nav: [{ id: 'naina', icon: '✓', label: 'Approval queue' }] },
+      ops: { label: 'Ops Team', nav: [{ id: 'ops', icon: '⚙', label: 'Payout processing' }] },
+      admin: { label: 'Admin', nav: [{ id: 'admin', icon: '🔐', label: 'Admin panel' }, { id: 'rajas', icon: '✓', label: 'Rajas queue' }, { id: 'ops', icon: '⚙', label: 'Ops' }, { id: 'naina', icon: '✓', label: 'Naina queue' }] },
+    };
+
+    function toast(msg, type = 'info') {
+      const el = document.getElementById('toast');
+      el.innerHTML = `<span style="color:${type === 'success' ? 'var(--green)' : type === 'error' ? 'var(--red)' : 'var(--accent)'}">${type === 'success' ? '✓' : '✕'}</span> ${msg}`;
+      el.className = `show ${type}`;
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { el.className = ''; }, 3500);
+    }
+
+
+
+
+    // ── ROLE / ACCESS ──
+    // Priority order: admin wins over everything, then naina, rajas, ops, user
+    const ROLE_PRIORITY = ['admin', 'naina', 'rajas', 'ops', 'user'];
+
+    async function doLogin() {
+      const email = document.getElementById('login-email').value.trim().toLowerCase();
+      const msgEl = document.getElementById('login-msg');
+      const btn = document.getElementById('login-btn');
+
+      if (!email) { msgEl.innerHTML = '<span style="color:var(--red)">Please enter your email address.</span>'; return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msgEl.innerHTML = '<span style="color:var(--red)">Please enter a valid email address.</span>'; return; }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Checking access…';
+      msgEl.innerHTML = '';
+
+      try {
+        // Fetch roles and submitters in parallel
+        const [rolesRes, submittersRes] = await Promise.all([
+          fetch(`${API_BASE}/api/roles`),
+          fetch(`${API_BASE}/api/submitters`),
+        ]);
+        const rolesData = await rolesRes.json();
+        const submittersData = await submittersRes.json();
+
+        const allRoles = rolesData.roles || [];
+        const allSubmitters = submittersData.submitters || [];
+
+        // Find all roles this email has
+        const matchedRoles = allRoles
+          .filter(r => r.email.toLowerCase() === email)
+          .map(r => r.role.toLowerCase());
+
+        // Check if they're an enabled submitter (user role)
+        const isSubmitter = allSubmitters.some(s => s.email.toLowerCase() === email && s.enabled);
+        if (isSubmitter && !matchedRoles.includes('user')) matchedRoles.push('user');
+
+        if (matchedRoles.length === 0) {
+          msgEl.innerHTML = '<span style="color:var(--red)">Access denied. Your email is not registered. Contact your admin.</span>';
+          btn.disabled = false; btn.innerHTML = 'Continue →'; return;
+        }
+
+        // Pick highest-priority role
+        const role = ROLE_PRIORITY.find(r => matchedRoles.includes(r)) || matchedRoles[0];
+
+        // Get display name from roles collection (or submitters)
+        const roleRecord = allRoles.find(r => r.email.toLowerCase() === email && r.role.toLowerCase() === role);
+        const submitterRecord = allSubmitters.find(s => s.email.toLowerCase() === email);
+        const displayName = roleRecord?.name || submitterRecord?.name || email;
+
+        currentUserEmail = email;
+        document.getElementById('splash').style.display = 'none';
+        launchRole(role, displayName);
+
+      } catch (e) {
+        msgEl.innerHTML = '<span style="color:var(--red)">Could not connect to server. Make sure the backend is running.</span>';
+      }
+      btn.disabled = false; btn.innerHTML = 'Continue →';
+    }
+
+    function switchRole() {
+      currentRole = null; currentUserEmail = null;
+      document.getElementById('app').style.display = 'none';
+      document.getElementById('login-email').value = '';
+      document.getElementById('login-msg').innerHTML = '';
+      document.getElementById('splash').style.display = 'flex';
+      setTimeout(() => document.getElementById('login-email').focus(), 80);
+    }
+
+    function launchRole(role, userName) {
+      currentRole = role;
+      document.getElementById('splash').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      document.getElementById('sidebar-role-label').textContent = roleConfigs[role].label;
+      document.getElementById('sidebar-user-label').textContent = userName || currentUserEmail || '';
+      buildNav(role);
+      showView(roleConfigs[role].nav[0].id);
+      loadData();
+    }
+
+    function buildNav(role) {
+      const nav = document.getElementById('sidebar-nav');
+      nav.innerHTML = '';
+      roleConfigs[role].nav.forEach(item => {
+        const el = document.createElement('div');
+        el.className = 'nav-item'; el.id = `nav-${item.id}`;
+        el.innerHTML = `<span class="nav-icon">${item.icon}</span>${item.label}<span class="nav-badge" id="badge-${item.id}" style="display:none">0</span>`;
+        el.onclick = () => showView(item.id);
+        nav.appendChild(el);
+      });
+    }
+
+    function showView(id) {
+      document.querySelectorAll('.page-view').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      const v = document.getElementById(`view-${id}`); if (v) v.classList.add('active');
+      const n = document.getElementById(`nav-${id}`); if (n) n.classList.add('active');
+      currentView = id;
+      renderView(id);
+    }
+
+    // ── DATA ──
+    async function loadData() {
+      try {
+        const r = await fetch(`${API_BASE}/api/entries`);
+        const d = await r.json();
+        entries = (d.entries || []).map((e, i) => ({ ...e, _id: e._id, _row: i }));
+        updateBadges(); renderView(currentView);
+      } catch (e) { }
+    }
+
+    function updateBadges() {
+      const counts = {
+        rajas: entries.filter(e => (!e.RajasApproval || e.OpsRejectedBack) && e.BonusStatus !== 'Bonus Get').length,
+        ops: entries.filter(e => e.RajasApproval === 'Approved' && !e.OpsApproval && !e.OpsRejectedBack && e.BonusStatus !== 'Bonus Get').length,
+        naina: entries.filter(e => e.OpsApproval === 'Approved' && !e.NainaApproval && e.BonusStatus !== 'Bonus Get').length,
+      };
+      Object.entries(counts).forEach(([k, v]) => { const b = document.getElementById(`badge-${k}`); if (b) { b.textContent = v; b.style.display = v > 0 ? 'flex' : 'none'; } });
+    }
+
+    async function updateCell(id, col, value) {
+      await fetch(`${API_BASE}/api/entries/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ [col]: value }) });
+    }
+
+    async function appendRow(data) {
+      await fetch(`${API_BASE}/api/entries`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+    }
+
+
+    function renderView(id) {
+      if (!id) return;
+      if (id !== 'ops') opsSearchQuery = '';
+      if (id === 'admin') { loadSubmitters().then(() => loadRoles().then(() => loadSheetsStatus().then(() => loadConfig().then(() => renderAdmin())))); return; }
+      ({ submit: () => { }, rajas: () => renderApproval('rajas'), naina: () => renderApproval('naina'), ops: renderOps }[id] || (() => { }))();
+    }
+
+    async function submitEntry() {
+      const email = document.getElementById('f-email').value.trim().toLowerCase();
+      if (!email) { toast('Please enter an email address.', 'error'); return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast('Please enter a valid email address.', 'error'); return; }
+      const accountId = (document.getElementById('f-accountid')?.value || '').trim();
+      const discount = (document.getElementById('f-discount')?.value.trim() || '');
+      const x = document.getElementById('f-x').value.trim();
+      const insta = document.getElementById('f-insta').value.trim();
+      const msgEl = document.getElementById('submit-msg');
+
+      if (!accountId || !x || !insta) {
+        msgEl.innerHTML = `<div style="font-size:12px;color:var(--red);margin-bottom:12px;padding:8px 12px;background:var(--red-bg);border-radius:6px;border:1px solid var(--red-border)">Please fill in all required fields.</div>`;
+        return;
+      }
+
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true; btn.innerHTML = `<span class="spinner"></span> Submitting…`;
+      try {
+        const entryData = {
+          Email: email, AccountId: accountId,
+          DiscountCode: discount, X: x, Insta: insta,
+          SubmittedBy: currentUserEmail || '',
+        };
+
+        const resp = await fetch(`${API_BASE}/api/entries`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entryData) });
+        const result = await resp.json();
+        const saved = result.entry;
+
+        if (saved && saved.BonusStatus === 'Bonus Get') {
+          msgEl.innerHTML = `<div style="font-size:12px;color:var(--red);margin-bottom:12px;padding:8px 12px;background:var(--red-bg);border-radius:6px;border:1px solid var(--red-border)">✕ Automatically rejected — Bonus already received.</div>`;
+          toast('Bonus already received — auto rejected', 'error');
+        } else if (saved && saved.NainaApproval === 'Rejected' && saved.NainaBy === 'System') {
+          msgEl.innerHTML = `<div style="font-size:12px;color:var(--red);margin-bottom:12px;padding:8px 12px;background:var(--red-bg);border-radius:6px;border:1px solid var(--red-border)">✕ Automatically rejected — this email already has a final Naina approval.</div>`;
+          toast('Already Naina-approved — auto rejected', 'error');
+        } else {
+          msgEl.innerHTML = `<div style="font-size:12px;color:var(--green);margin-bottom:12px;padding:8px 12px;background:var(--green-bg);border-radius:6px;border:1px solid var(--green-border)">✓ Submitted! Awaiting Rajas approval.</div>`;
+          toast('Entry submitted', 'success');
+        }
+
+        // Reset form
+        document.getElementById('f-email').value = '';
+        document.getElementById('f-accountid').value = '';
+        document.getElementById('f-discount').value = '';
+        document.getElementById('f-x').value = '';
+        document.getElementById('f-insta').value = '';
+        await loadData();
+      } catch (e) { toast('Submission failed. Try again.', 'error'); }
+      btn.disabled = false; btn.innerHTML = 'Submit entry →';
+    }
+
+    // ── APPROVAL ──
+    function buildEntryCard(who, e, isReturned) {
+      const isR = who === 'rajas';
+      return `<div class="entry-card fade-in" id="ec-${who}-${e._id}" style="padding:20px 22px${isReturned ? ';border-color:var(--amber-border)' : ''}">
+        ${isReturned ? `<div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;padding:7px 12px;background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:6px">
+          <span style="font-size:13px">⚠</span>
+          <span style="font-size:12px;color:var(--amber);font-weight:600">Returned by Ops</span>
+          ${e.OpsRemark ? `<span style="font-size:12px;color:var(--text2);margin-left:6px">— ${e.OpsRemark}</span>` : ''}
+        </div>` : ''}
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+              <span class="entry-email" style="font-size:13px">${e.Email || '—'}</span>
+              ${e.AccountId ? `<span class="badge badge-gray" style="font-family:'DM Mono',monospace">Account: ${e.AccountId}</span>` : ''}
+            </div>
+            ${e.DiscountCode ? `<div style="margin-bottom:8px"><span style="font-size:11px;color:var(--text3)">Discount: </span><span class="badge badge-blue" style="font-family:'DM Mono',monospace">🏷 ${e.DiscountCode}</span>${e.BonusPct ? `<span class="badge badge-green" style="margin-left:6px">+${e.BonusPct}</span>` : ''}</div>` : ''}
+            ${!isR && e.OpsRemark ? `<div style="margin-bottom:8px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text2)"><span style="color:var(--accent);font-weight:600">Ops remark:</span> ${e.OpsRemark}</div>` : ''}
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              ${e.X
+          ? `<a class="entry-link" href="${e.X}" target="_blank" style="display:inline-flex;align-items:center;gap:5px"><span style="font-size:13px">𝕏</span> X Post ↗</a>`
+          : `<span class="entry-link missing">✕ X link missing</span>`}
+              ${e.Insta
+          ? `<a class="entry-link" href="${e.Insta}" target="_blank" style="display:inline-flex;align-items:center;gap:5px"><span>💳</span> InstaPayout ↗</a>`
+          : `<span class="entry-link missing">✕ Insta missing</span>`}
+            </div>
+            <div style="margin-top:12px">
+              <label style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px">Remark (optional)</label>
+              <textarea id="remark-${who}-${e._id}" placeholder="Add a remark…" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;color:var(--text);font-family:'Instrument Sans',sans-serif;outline:none;resize:vertical;min-height:60px;width:100%;transition:border-color .15s" onfocus="this.style.borderColor='var(--accent-border)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;margin-top:auto">
+            <button class="btn btn-success" style="padding:8px 18px;font-size:13px" onclick="doApprove('${who}','${e._id}','Approved',null,document.getElementById('remark-${who}-${e._id}').value.trim())">✓ Approve</button>
+            <button class="btn btn-danger" style="padding:8px 18px;font-size:13px" id="reject-btn-${who}-${e._id}" onclick="showRejectBox('${who}','${e._id}')">✕ Reject</button>
+          </div>
+        </div>
+        <div id="reject-box-${who}-${e._id}" style="display:none">
+          <div class="reject-reason-box">
+            <label>Rejection reason</label>
+            <textarea id="reject-reason-${who}-${e._id}" placeholder="Explain why this entry is being rejected…"></textarea>
+            <div class="reject-reason-actions">
+              <button class="btn btn-danger" style="font-size:12px" onclick="submitReject('${who}','${e._id}')">Submit rejection</button>
+              <button class="btn btn-sm" onclick="hideRejectBox('${who}','${e._id}')">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    function renderApproval(who) {
+      const isR = who === 'rajas';
+      // Fresh pending (Rajas: never seen / Naina: ops approved)
+      const pending = isR
+        ? entries.filter(e => !e.RajasApproval && !e.OpsRejectedBack && e.BonusStatus !== 'Bonus Get')
+        : entries.filter(e => e.OpsApproval === 'Approved' && !e.NainaApproval && e.BonusStatus !== 'Bonus Get');
+      // Returned by Ops (Rajas only)
+      const returnedByOps = isR
+        ? entries.filter(e => e.OpsRejectedBack && e.BonusStatus !== 'Bonus Get')
+        : [];
+      const reviewed = isR
+        ? entries.filter(e => e.RajasApproval && !e.OpsRejectedBack && e.BonusStatus !== 'Bonus Get')
+        : entries.filter(e => e.NainaApproval && e.BonusStatus !== 'Bonus Get');
+      const c = document.getElementById(`view-${who}-content`); if (!c) return;
+
+      const totalPending = pending.length + returnedByOps.length;
+      let html = `<div class="stat-grid">
+    <div class="stat-card"><div class="stat-label">Pending review</div><div class="stat-value" style="color:var(--amber)">${totalPending}</div></div>
+    <div class="stat-card"><div class="stat-label">Returned by Ops</div><div class="stat-value" style="color:var(--amber)">${returnedByOps.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Approved</div><div class="stat-value" style="color:var(--green)">${reviewed.filter(e => (isR ? e.RajasApproval : e.NainaApproval) === 'Approved').length}</div></div>
+    <div class="stat-card"><div class="stat-label">Rejected</div><div class="stat-value" style="color:var(--red)">${reviewed.filter(e => (isR ? e.RajasApproval : e.NainaApproval) === 'Rejected').length}</div></div>
+  </div>`;
+
+      if (!totalPending && !reviewed.length) { html += `<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">No entries yet</div></div>`; c.innerHTML = html; return; }
+
+      // ── Returned by Ops section (Rajas only) ──
+      if (returnedByOps.length) {
+        html += `<div class="section-label" style="color:var(--amber)">⚠ Returned by Ops (${returnedByOps.length})</div>`;
+        returnedByOps.forEach(e => { html += buildEntryCard(who, e, true); });
+      }
+
+      if (pending.length) {
+        html += `<div class="section-label"${returnedByOps.length ? ' style="margin-top:20px"' : ''}>Pending (${pending.length})</div>`;
+        pending.forEach(e => { html += buildEntryCard(who, e, false); });
+      }
+
+      if (reviewed.length) {
+        html += `<div class="divider"></div><div class="section-label">Reviewed (${reviewed.length})</div>`;
+        reviewed.forEach(e => {
+          const st = isR ? e.RajasApproval : e.NainaApproval;
+          const stBadge = st === 'Approved' ? 'badge-green' : 'badge-red';
+          const stIcon = st === 'Approved' ? '✓' : '✕';
+          html += `<div class="entry-card" style="padding:16px 22px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span class="entry-email" style="font-size:13px">${e.Email || '—'}</span>
+            ${e.AccountId ? `<span class="badge badge-gray" style="font-family:'DM Mono',monospace">Account: ${e.AccountId}</span>` : ''}
+          </div>
+          <span class="badge ${stBadge}" style="font-size:12px;padding:4px 10px">${stIcon} ${st}</span>
+        </div>
+        ${e.DiscountCode ? `<div class="discount-reveal" style="margin-top:10px"><span style="font-size:12px;color:var(--text2)">Discount:</span><span class="discount-code">${e.DiscountCode}</span>${e.BonusPct ? `<span class="badge badge-green">+${e.BonusPct} bonus</span>` : ''}</div>` : ''}
+        ${isR && e.NainaApproval === 'Rejected' && e.NainaRejectReason ? `<div class="naina-rejection-notice"><span class="notice-icon">⚠</span><div class="notice-body"><strong>Naina rejected this entry</strong>${e.NainaRejectReason}</div></div>` : ''}
+        ${isR && e.RajasApproval === 'Rejected' && e.RajasRejectReason ? `<div style="margin-top:8px;font-size:12px;color:var(--text3)"><span style="color:var(--red)">Your reason:</span> ${e.RajasRejectReason}</div>` : ''}
+        ${isR && e.RajasRemark ? `<div style="margin-top:8px;font-size:12px;color:var(--text3)"><span style="color:var(--accent)">Your remark:</span> ${e.RajasRemark}</div>` : ''}
+        ${!isR && e.NainaApproval === 'Rejected' && e.NainaRejectReason ? `<div style="margin-top:8px;font-size:12px;color:var(--text3)"><span style="color:var(--red)">Your reason:</span> ${e.NainaRejectReason}</div>` : ''}
+        ${!isR && e.NainaRemark ? `<div style="margin-top:8px;font-size:12px;color:var(--text3)"><span style="color:var(--accent)">Your remark:</span> ${e.NainaRemark}</div>` : ''}
+      </div>`;
+        });
+      }
+      c.innerHTML = html;
+    }
+
+    // Single PATCH — sends all fields at once → one DB write → one sheet sync
+    async function patchEntry(id, fields) {
+      await fetch(`${API_BASE}/api/entries/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(fields)
+      });
+    }
+
+    async function doApprove(who, id, decision, reason, remark) {
+      const e = entries.find(x => x._id === id); if (!e) return;
+      const card = document.getElementById(`ec-${who}-${id}`); if (card) card.classList.add('loading');
+      const now = new Date().toISOString();
+
+      if (who === 'rajas') {
+        const fields = {
+          RajasApproval: decision,
+          RajasBy: currentUserEmail || currentRole || 'rajas',
+          RajasTime: now,
+          RajasRemark: remark || '',
+        };
+        if (decision === 'Rejected' && reason) fields.RajasRejectReason = reason;
+        // If this was returned by Ops, clear the flag on any decision
+        if (e.OpsRejectedBack) {
+          fields.OpsRejectedBack = false;
+          fields.OpsApproval = '';
+          fields.OpsBy = '';
+          fields.OpsTime = '';
+        }
+        await patchEntry(e._id, fields);
+
+      } else {
+        const fields = {
+          NainaApproval: decision,
+          NainaBy: currentUserEmail || currentRole || 'naina',
+          NainaTime: now,
+          NainaRemark: remark || '',
+        };
+        if (decision === 'Rejected' && reason) fields.NainaRejectReason = reason;
+
+        await patchEntry(e._id, fields);
+      }
+
+      toast(`Entry ${decision.toLowerCase()}`, decision === 'Approved' ? 'success' : 'error');
+      await loadData();
+    }
+
+    function showRejectBox(who, id) {
+      const box = document.getElementById(`reject-box-${who}-${id}`);
+      const btn = document.getElementById(`reject-btn-${who}-${id}`);
+      if (box) box.style.display = 'block';
+      if (btn) btn.style.display = 'none';
+      const ta = document.getElementById(`reject-reason-${who}-${id}`);
+      if (ta) setTimeout(() => ta.focus(), 50);
+    }
+
+    function hideRejectBox(who, id) {
+      const box = document.getElementById(`reject-box-${who}-${id}`);
+      const btn = document.getElementById(`reject-btn-${who}-${id}`);
+      if (box) box.style.display = 'none';
+      if (btn) btn.style.display = '';
+      const ta = document.getElementById(`reject-reason-${who}-${id}`);
+      if (ta) ta.value = '';
+    }
+
+    async function submitReject(who, id) {
+      const ta = document.getElementById(`reject-reason-${who}-${id}`);
+      const reason = ta ? ta.value.trim() : '';
+      if (!reason) { toast('Please enter a rejection reason before submitting.', 'error'); if (ta) ta.focus(); return; }
+      await doApprove(who, id, 'Rejected', reason);
+    }
+
+    // ── OPS ──
+    let opsSearchQuery = '';
+
+    function renderOps() {
+      const c = document.getElementById('view-ops-content'); if (!c) return;
+      const allEntries = entries.filter(e => e.BonusStatus !== 'Bonus Get');
+      // Pending Ops: Rajas approved, no Ops decision yet
+      const pending = allEntries.filter(e => e.RajasApproval === 'Approved' && !e.OpsApproval);
+      const reviewed = allEntries.filter(e => e.OpsApproval);
+
+      let html = `<div class="stat-grid">
+    <div class="stat-card"><div class="stat-label">Pending review</div><div class="stat-value" style="color:var(--amber)">${pending.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Approved</div><div class="stat-value" style="color:var(--green)">${reviewed.filter(e => e.OpsApproval === 'Approved').length}</div></div>
+    <div class="stat-card"><div class="stat-label">Rejected</div><div class="stat-value" style="color:var(--red)">${reviewed.filter(e => e.OpsApproval === 'Rejected').length}</div></div>
+    <div class="stat-card"><div class="stat-label">Total entries</div><div class="stat-value">${allEntries.length}</div></div>
+  </div>`;
+
+      if (!pending.length && !reviewed.length) {
+        html += `<div class="empty"><div class="empty-icon">⚙</div><div class="empty-text">No entries for Ops yet</div></div>`;
+        c.innerHTML = html; return;
+      }
+
+      if (pending.length) {
+        html += `<div class="section-label">Pending Ops review (${pending.length})</div>`;
+        pending.forEach(e => {
+          html += `<div class="entry-card fade-in" id="ops-ec-${e._id}" style="padding:20px 22px">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+              <span class="entry-email" style="font-size:13px">${e.Email || '—'}</span>
+              ${e.AccountId ? `<span class="badge badge-gray" style="font-family:'DM Mono',monospace">Account: ${e.AccountId}</span>` : ''}
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+              <span style="font-size:11px;color:var(--text3)">✓ Rajas: <strong style="color:var(--green)">Approved</strong></span>
+            </div>
+            ${e.DiscountCode ? `<div style="margin-bottom:8px"><span style="font-size:11px;color:var(--text3)">Discount: </span><span class="badge badge-blue" style="font-family:'DM Mono',monospace">🏷 ${e.DiscountCode}</span>${e.BonusPct ? `<span class="badge badge-green" style="margin-left:6px">+${e.BonusPct}</span>` : ''}</div>` : ''}
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+              ${e.X ? `<a class="entry-link" href="${e.X}" target="_blank" style="display:inline-flex;align-items:center;gap:5px"><span style="font-size:13px">𝕏</span> X Post ↗</a>` : ''}
+              ${e.Insta ? `<a class="entry-link" href="${e.Insta}" target="_blank" style="display:inline-flex;align-items:center;gap:5px"><span>💳</span> InstaPayout ↗</a>` : ''}
+            </div>
+            <div style="margin-bottom:10px">
+              <label style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px">Ops Remark (optional)</label>
+              <textarea id="ops-remark-${e._id}" placeholder="Add a remark before approving or rejecting…"
+                style="width:100%;max-width:500px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:'Instrument Sans',sans-serif;outline:none;resize:vertical;min-height:64px"></textarea>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+            <button class="btn btn-success" style="padding:8px 18px;font-size:13px" onclick="doOpsAction('${e._id}','Approved')">✓ Approve</button>
+            <button class="btn btn-danger" style="padding:8px 18px;font-size:13px" onclick="doOpsAction('${e._id}','Rejected')">✕ Reject</button>
+          </div>
+        </div>
+      </div>`;
+        });
+      }
+
+      // ── Search + table ──
+      const searchBar = `<div class="divider" style="margin:24px 0"></div>
+<div class="section-label">All entries</div>
+<div class="card" style="margin-bottom:16px;padding:14px 18px">
+  <div style="display:flex;align-items:center;gap:10px">
+    <span style="color:var(--text3);font-size:15px">🔍</span>
+    <input id="ops-search" placeholder="Search by email, account ID, type, ops status…"
+      style="flex:1;background:transparent;border:none;font-size:14px;color:var(--text);outline:none"
+      value="${opsSearchQuery.replace(/"/g, '&quot;')}"
+      oninput="opsSearchQuery=this.value;renderOps()">
+    ${opsSearchQuery ? `<button class="btn btn-sm" style="padding:4px 10px;font-size:11px" onclick="opsSearchQuery='';renderOps()">✕ Clear</button>` : ''}
+  </div>
+</div>`;
+
+      const q = opsSearchQuery.toLowerCase();
+      const filtered = q
+        ? allEntries.filter(e =>
+          (e.Email || '').toLowerCase().includes(q) ||
+          (e.AccountId || '').toLowerCase().includes(q) ||
+          (e.OpsApproval || '').toLowerCase().includes(q) ||
+          (e.OpsRemark || '').toLowerCase().includes(q)
+        )
+        : allEntries;
+
+      const tableHtml = filtered.length === 0
+        ? `<div class="empty" style="padding:32px"><div class="empty-icon">🔎</div><div class="empty-text">${q ? 'No results' : 'No entries yet'}</div></div>`
+        : `<div style="overflow-x:auto"><table class="data-table">
+          <thead><tr>
+            <th>Email</th><th>Account ID</th>
+            <th>Discount</th><th>Bonus</th>
+            <th>Rajas</th><th>Ops</th><th>Ops Remark</th><th>Naina</th>
+          </tr></thead>
+          <tbody>
+          ${filtered.map(e => `<tr>
+            <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text)">${e.Email || '—'}</td>
+            <td style="font-family:'DM Mono',monospace;font-size:11px">${e.AccountId || '—'}</td>
+            <td>${e.DiscountCode ? `<span class="badge badge-blue" style="font-family:'DM Mono',monospace">🏷 ${e.DiscountCode}</span>` : '—'}</td>
+            <td>${e.BonusPct ? `<span class="badge badge-green">+${e.BonusPct}</span>` : '—'}</td>
+            <td><span class="badge ${e.RajasApproval === 'Approved' ? 'badge-green' : e.RajasApproval === 'Rejected' ? 'badge-red' : 'badge-gray'}">${e.RajasApproval || '—'}</span></td>
+            <td><span class="badge ${e.OpsApproval === 'Approved' ? 'badge-green' : e.OpsApproval === 'Rejected' ? 'badge-red' : 'badge-gray'}">${e.OpsApproval || '—'}</span></td>
+            <td style="font-size:11px;color:var(--text3);max-width:180px">${e.OpsRemark || '—'}</td>
+            <td><span class="badge ${e.NainaApproval === 'Approved' ? 'badge-green' : e.NainaApproval === 'Rejected' ? 'badge-red' : 'badge-gray'}">${e.NainaApproval || '—'}</span></td>
+          </tr>`).join('')}
+          </tbody>
+        </table></div>`;
+
+      html += searchBar + `<div class="card">${tableHtml}</div>`;
+      c.innerHTML = html;
+
+      if (opsSearchQuery) {
+        const sb = document.getElementById('ops-search');
+        if (sb) { sb.focus(); sb.setSelectionRange(sb.value.length, sb.value.length); }
+      }
+    }
+
+    async function doOpsAction(id, decision) {
+      const e = entries.find(x => x._id === id); if (!e) return;
+      const remarkEl = document.getElementById(`ops-remark-${id}`);
+      const remark = remarkEl ? remarkEl.value.trim() : '';
+      const now = new Date().toISOString();
+      const fields = {
+        OpsApproval: decision,
+        OpsBy: currentUserEmail || 'ops',
+        OpsTime: now,
+        OpsRemark: remark,
+      };
+      if (decision === 'Rejected') {
+        // Return to Rajas — set flag, clear Rajas approval so it re-enters their queue
+        fields.OpsRejectedBack = true;
+        fields.RajasApproval = '';
+        fields.RajasBy = '';
+        fields.RajasTime = '';
+        fields.RajasRejectReason = '';
+      }
+      await patchEntry(id, fields);
+      toast(decision === 'Approved' ? 'Ops approved — sent to Naina' : 'Ops rejected — returned to Rajas', decision === 'Approved' ? 'success' : 'error');
+      await loadData();
+    }
+
+    async function saveBonusStatus(id) {
+      const input = document.getElementById(`ops-bonus-${id}`);
+      if (!input) return;
+      const value = input.value.trim();
+      await patchEntry(id, { BonusStatus: value });
+      toast('Bonus Status saved', 'success');
+      await loadData();
+    }
+
+    // ── ADMIN ──
+    let adminRoles = [];
+    async function loadRoles() {
+      try { const r = await fetch(`${API_BASE}/api/roles`); const d = await r.json(); adminRoles = d.roles || []; } catch (e) { }
+    }
+
+    function renderAdmin() {
+      const c = document.getElementById('view-admin-content'); if (!c) return;
+      const activeCount = allowedSubmitters.filter(u => u.enabled).length;
+      const roleBadge = { user: 'badge-blue', rajas: 'badge-green', naina: 'badge-green', ops: 'badge-purple', admin: 'badge-red' };
+      const roleLabel = { user: 'User', rajas: 'Rajas', naina: 'Naina', ops: 'Ops Team', admin: 'Admin' };
+
+      const _sc = sheetsStatus;
+
+      function _sheetCard(label, info) {
+        const conn = info && info.connected;
+        const bdr = conn ? 'rgba(45,212,160,0.2)' : 'rgba(245,166,35,0.2)';
+        const col = conn ? '#2dd4a0' : '#f5a623';
+        const bg = conn ? 'rgba(45,212,160,0.08)' : 'rgba(245,166,35,0.08)';
+        return '<div class="card" style="margin-bottom:12px;border-color:' + bdr + '">' +
+          '<div class="card-title" style="color:' + col + ';margin-bottom:12px">&#x1F4CA; ' + label +
+          '<span class="badge" style="margin-left:auto;background:' + bg + ';color:' + col + ';border:1px solid ' + bdr + '">' + (conn ? 'Live' : 'Disconnected') + '</span></div>' +
+          (conn
+            ? '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">' +
+            '<div><p style="font-size:13px;color:var(--text2);margin-bottom:8px">Connected to <strong style="color:#2dd4a0">' + (info.sheetTitle || 'Google Sheet') + '</strong></p>' +
+            '<a href="https://docs.google.com/spreadsheets/d/' + info.sheetId + '/edit" target="_blank" style="font-size:12px;color:var(--accent);text-decoration:none;border:1px solid var(--accent-border);padding:4px 10px;border-radius:5px;background:var(--accent-bg)">&#x1F4CA; Open Sheet &#x2197;</a></div>' +
+            '</div>'
+            : '<p style="font-size:13px;color:var(--text2);margin-bottom:0">Not connected. Add <code style="background:var(--bg4);padding:2px 5px;border-radius:3px;font-size:11px">GOOGLE_PAYOUT_SHEET_ID</code> to your <code style="background:var(--bg4);padding:2px 5px;border-radius:3px;font-size:11px">.env</code> and restart.</p>') +
+          '</div>';
+      }
+
+      const _sheetsCard = '<div class="card" style="margin-bottom:20px">' +
+        '<div class="card-title" style="margin-bottom:14px">&#x1F4CA; Google Sheets Sync' +
+        '<button id="resync-btn" class="btn btn-primary btn-sm" onclick="triggerResync()" style="margin-left:auto">&#x21BA; Full Re-sync</button></div>' +
+        _sheetCard('Payout Sheet', _sc && _sc.payout) +
+        '<p style="font-size:11px;color:var(--text3);margin-top:12px;line-height:1.7"><strong style="color:var(--text2)">Auto-sync ON</strong> — All entries sync to the Payout sheet. Submitters & Roles also sync automatically.</p>' +
+        '</div>';
+
+      let html = _sheetsCard + `
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title">User submitters <span class="badge badge-blue">${activeCount} active / ${allowedSubmitters.length} total</span></div>
+    <p style="font-size:13px;color:var(--text3);margin-bottom:16px;line-height:1.6">Only users on this list can submit entries. Toggle to enable/disable without removing.</p>
+    <div class="user-list">
+      ${allowedSubmitters.length === 0
+          ? `<div style="font-size:13px;color:var(--text3);padding:16px;text-align:center;border:1px dashed var(--border2);border-radius:8px">No users added yet.</div>`
+          : allowedSubmitters.map(u => `
+        <div class="user-item">
+          <div class="user-item-info">
+            <div class="user-item-name">${u.name}</div>
+            <div class="user-item-email">${u.email}</div>
+          </div>
+          <div class="user-item-actions">
+            <span class="badge ${u.enabled ? 'badge-green' : 'badge-gray'}" style="margin-right:4px">${u.enabled ? 'Active' : 'Disabled'}</span>
+            <label class="toggle-switch">
+              <input type="checkbox" ${u.enabled ? 'checked' : ''} onchange="toggleUser('${u._id}',this.checked)">
+              <div class="toggle-track"></div>
+            </label>
+            <button class="btn btn-danger" style="padding:4px 10px;font-size:11px" onclick="removeUser('${u._id}')">Remove</button>
+          </div>
+        </div>`).join('')}
+    </div>
+    <div class="add-user-form">
+      <div class="form-group"><label>Name</label><input id="new-name" placeholder="Full name" onkeydown="if(event.key==='Enter')addUser()"></div>
+      <div class="form-group"><label>Email</label><input id="new-email" type="email" placeholder="email@domain.com" onkeydown="if(event.key==='Enter')addUser()"></div>
+      <div><label style="visibility:hidden">a</label><button class="btn btn-primary" onclick="addUser()">+ Add user</button></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title">Role access <span class="badge badge-blue">${adminRoles.length} total</span></div>
+    <p style="font-size:13px;color:var(--text3);margin-bottom:16px;line-height:1.6">Grant login access for Rajas, Naina, Ops and Admin roles.</p>
+    <div class="user-list">
+      ${adminRoles.length === 0
+          ? `<div style="font-size:13px;color:var(--text3);padding:16px;text-align:center;border:1px dashed var(--border2);border-radius:8px">No role access granted yet. Add someone below.</div>`
+          : adminRoles.map(r => `
+        <div class="user-item">
+          <div class="user-item-info">
+            <div class="user-item-name">${r.name || r.email}</div>
+            <div class="user-item-email">${r.email}</div>
+          </div>
+          <div class="user-item-actions">
+            <span class="badge ${roleBadge[r.role] || 'badge-gray'}" style="margin-right:6px">${roleLabel[r.role] || r.role}</span>
+            <button class="btn btn-danger" style="padding:4px 10px;font-size:11px" onclick="removeRole('${r._id}')">Remove</button>
+          </div>
+        </div>`).join('')}
+    </div>
+    <div class="add-user-form" style="grid-template-columns:1fr 1fr 1fr auto">
+      <div class="form-group"><label>Name</label><input id="new-role-name" placeholder="Full name"></div>
+      <div class="form-group"><label>Email</label><input id="new-role-email" type="email" placeholder="email@domain.com"></div>
+      <div class="form-group"><label>Role</label>
+        <select id="new-role-select">
+          <option value="">Select role…</option>
+          <option value="rajas">Rajas</option>
+          <option value="naina">Naina</option>
+          <option value="ops">Ops Team</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div><label style="visibility:hidden">a</label><button class="btn btn-primary" onclick="addRole()">+ Add</button></div>
+    </div>
+  </div>
+
+  <div class="stat-grid" style="margin-bottom:20px">
+    <div class="stat-card"><div class="stat-label">Total entries</div><div class="stat-value">${entries.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Pending Rajas</div><div class="stat-value">${entries.filter(e => !e.RajasApproval && e.BonusStatus !== 'Bonus Get').length}</div></div>
+    <div class="stat-card"><div class="stat-label">Naina approved</div><div class="stat-value">${entries.filter(e => e.NainaApproval === 'Approved').length}</div></div>
+    <div class="stat-card"><div class="stat-label">Bonuses issued</div><div class="stat-value">${entries.filter(e => e.BonusPct).length}</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">All submissions</div>
+    ${entries.length === 0
+          ? `<div class="empty" style="padding:24px"><div class="empty-text">No data yet</div></div>`
+          : `<div style="overflow-x:auto"><table class="data-table">
+        <thead><tr><th>Email</th><th>Account ID</th><th>Discount</th><th>Rajas</th><th>Naina</th><th>Ops</th><th>Bonus</th><th style="width:60px">Del</th></tr></thead>
+        <tbody>
+          ${entries.map(e => `<tr>
+            <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text)">${e.Email || '—'}</td>
+            <td style="font-family:'DM Mono',monospace;font-size:11px">${e.AccountId || '—'}</td>
+            <td style="font-family:'DM Mono',monospace;font-size:11px">${e.DiscountCode || '—'}</td>
+            <td><span class="badge ${e.RajasApproval === 'Approved' ? 'badge-green' : e.RajasApproval === 'Rejected' ? 'badge-red' : 'badge-gray'}">${e.RajasApproval || 'Pending'}</span></td>
+            <td><span class="badge ${e.NainaApproval === 'Approved' ? 'badge-green' : e.NainaApproval === 'Rejected' ? 'badge-red' : 'badge-gray'}">${e.NainaApproval || '—'}</span></td>
+            <td><span class="badge ${e.OpsApproval === 'Approved' ? 'badge-green' : e.OpsApproval === 'Rejected' ? 'badge-red' : 'badge-gray'}">${e.OpsApproval || '—'}</span></td>
+            <td>${e.BonusPct ? `<span class="badge badge-green">+${e.BonusPct}</span>` : '—'}</td>
+            <td><button class="btn btn-danger" style="padding:3px 8px;font-size:11px" onclick="deleteEntry('${e._id}','${(e.Email || '').replace(/'/g, "\\'")}')">✕</button></td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>`}
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <div class="card-title" style="margin-bottom:14px">🔔 Google Chat Notifications</div>
+    <p style="font-size:13px;color:var(--text3);margin-bottom:16px;line-height:1.6">Paste your Google Chat Space webhook URL below. Notifications fire on every submission and approval event.</p>
+    <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+      <div class="form-group" style="flex:1;min-width:260px;margin-bottom:0">
+        <label>Webhook URL</label>
+        <input id="webhook-input" type="url" placeholder="https://chat.googleapis.com/v1/spaces/…/messages?key=…" value="${adminWebhookUrl || ''}">
+      </div>
+      <button class="btn btn-primary" style="margin-bottom:0" onclick="saveWebhook()">Save</button>
+      <button class="btn btn-sm" style="margin-bottom:0" onclick="testWebhook()">Test ping</button>
+    </div>
+    <div id="webhook-msg" style="font-size:12px;margin-top:10px;min-height:18px"></div>
+  </div>`;
+
+      c.innerHTML = html;
+    }
+
+    async function addRole() {
+      const name = document.getElementById('new-role-name')?.value.trim();
+      const email = document.getElementById('new-role-email')?.value.trim().toLowerCase();
+      const role = document.getElementById('new-role-select')?.value;
+      if (!email || !role) { toast('Enter email and select a role', 'error'); return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast('Invalid email', 'error'); return; }
+      try {
+        const r = await fetch(`${API_BASE}/api/roles`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, role }) });
+        const d = await r.json();
+        if (!d.success) { toast(d.error || 'Failed', 'error'); return; }
+        await loadRoles(); toast(`${email} added as ${role}`, 'success'); renderAdmin();
+      } catch (e) { toast('Server error', 'error'); }
+    }
+
+    async function removeRole(id) {
+      try {
+        await fetch(`${API_BASE}/api/roles/${id}`, { method: 'DELETE' });
+        await loadRoles(); toast('Role removed', 'error'); renderAdmin();
+      } catch (e) { toast('Server error', 'error'); }
+    }
+
+    async function addUser() {
+      const name = document.getElementById('new-name')?.value.trim();
+      const email = document.getElementById('new-email')?.value.trim().toLowerCase();
+      if (!name || !email) { toast('Enter both name and email', 'error'); return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast('Invalid email', 'error'); return; }
+      try {
+        const r = await fetch(`${API_BASE}/api/submitters`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email }) });
+        const d = await r.json();
+        if (!d.success) { toast(d.error || 'Failed', 'error'); return; }
+        await loadSubmitters(); toast(`${name} added`, 'success'); renderAdmin();
+      } catch (e) { toast('Server error', 'error'); }
+    }
+
+    async function removeUser(id) {
+      const u = allowedSubmitters.find(x => x._id === id);
+      try {
+        await fetch(`${API_BASE}/api/submitters/${id}`, { method: 'DELETE' });
+        await loadSubmitters(); toast(`${u?.name || 'User'} removed`, 'error'); renderAdmin();
+      } catch (e) { toast('Server error', 'error'); }
+    }
+
+    async function toggleUser(id, enabled) {
+      const u = allowedSubmitters.find(x => x._id === id);
+      try {
+        await fetch(`${API_BASE}/api/submitters/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled }) });
+        await loadSubmitters(); toast(`${u?.name || 'User'} ${enabled ? 'enabled' : 'disabled'}`, enabled ? 'success' : 'error'); renderAdmin();
+      } catch (e) { toast('Server error', 'error'); }
+    }
+
+    // ── Google Sheets helpers ──
+    let sheetsStatus = { payout: { connected: false } };
+    let adminWebhookUrl = '';
+
+    async function loadConfig() {
+      try {
+        const r = await fetch(`${API_BASE}/api/config`);
+        const d = await r.json();
+        if (d.success) adminWebhookUrl = d.config.gchat_webhook || '';
+      } catch { adminWebhookUrl = ''; }
+    }
+
+    async function saveWebhook() {
+      const url = document.getElementById('webhook-input')?.value.trim() || '';
+      const msgEl = document.getElementById('webhook-msg');
+      try {
+        const r = await fetch(`${API_BASE}/api/config`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: 'gchat_webhook', value: url }) });
+        const d = await r.json();
+        if (d.success) {
+          adminWebhookUrl = url;
+          msgEl.innerHTML = '<span style="color:var(--green)">✓ Webhook saved.</span>';
+          toast('Webhook saved', 'success');
+        } else {
+          msgEl.innerHTML = '<span style="color:var(--red)">Failed to save.</span>';
+        }
+      } catch { msgEl.innerHTML = '<span style="color:var(--red)">Server error.</span>'; }
+    }
+
+    async function testWebhook() {
+      const msgEl = document.getElementById('webhook-msg');
+      msgEl.innerHTML = '<span style="color:var(--text3)">Sending test ping…</span>';
+      try {
+        // Save current input first
+        const url = document.getElementById('webhook-input')?.value.trim() || '';
+        await fetch(`${API_BASE}/api/config`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: 'gchat_webhook', value: url }) });
+        const r = await fetch(`${API_BASE}/api/config/test-webhook`, { method: 'POST' });
+        const d = await r.json();
+        if (d.success) {
+          msgEl.innerHTML = '<span style="color:var(--green)">✓ Test message sent to Google Chat!</span>';
+        } else {
+          msgEl.innerHTML = `<span style="color:var(--red)">Failed: ${d.error || 'Check webhook URL'}</span>`;
+        }
+      } catch { msgEl.innerHTML = '<span style="color:var(--red)">Could not reach server.</span>'; }
+    }
+
+    async function deleteEntry(id, email) {
+      if (!confirm(`Delete entry for ${email}?\n\nThis removes it from MongoDB and the Payout sheet. Cannot be undone.`)) return;
+      try {
+        const r = await fetch(`${API_BASE}/api/entries/${id}`, { method: 'DELETE' });
+        const d = await r.json();
+        if (d.success) {
+          toast(`Entry deleted: ${email}`, 'error');
+          await loadData();
+          renderAdmin();
+        } else {
+          toast('Delete failed: ' + (d.error || 'Unknown error'), 'error');
+        }
+      } catch { toast('Server error', 'error'); }
+    }
+
+    async function loadSheetsStatus() {
+      try {
+        const r = await fetch(`${API_BASE}/api/sheets/status`);
+        const d = await r.json();
+        if (d.success) sheetsStatus = d;
+      } catch (e) { sheetsStatus = { payout: { connected: false } }; }
+    }
+
+    async function triggerResync() {
+      const btn = document.getElementById('resync-btn');
+      if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Syncing…'; }
+      try {
+        const r = await fetch(`${API_BASE}/api/sheets/resync`, { method: 'POST' });
+        const d = await r.json();
+        if (d.success) {
+          toast(`Synced — ${d.counts.entries} entries, ${d.counts.submitters} submitters, ${d.counts.roles} roles`, 'success');
+        } else {
+          toast('Resync failed: ' + d.error, 'error');
+        }
+      } catch (e) { toast('Could not reach server', 'error'); }
+      if (btn) { btn.disabled = false; btn.innerHTML = '↺ Full Re-sync'; }
+    }
+
+  </script>
+</body>
+
+</html>
